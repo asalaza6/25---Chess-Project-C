@@ -1,0 +1,29 @@
+- [x] struct piece
+- [x] struct Board
+- [ ] struct move
+- [x] struct pieces
+- [x] struct game
+- [x] int char2int(char* myChar)
+- [x] char* int2char(int number)
+- [x] void init_Queen(PIECE* myObject, int color, int number);
+- [x] void init_King(PIECE* myObject, int color, int number)
+- [x] void init_Knight(PIECE* myObject, int color, int number)
+- [x] void init_Pawn(PIECE* myObject, int color, int number)
+- [x] void init_Rook(PIECE* myObject, int color, int number)
+- [x] void init_Bishop(PIECE* myObject, int color, int number)
+- [x] PIECES* initializePieces(int color, BOARD* gameBoard)
+- [x] int printASCII(PIECE* myP)
+- [x] void printBoard(BOARD* myBoard)
+- [x] GAME* init_Game()
+- [ ] int check(MOVE myObject, BOARD* boardObject)
+- [ ] int neighbor(MOVE myObject, BOARD* boardObject)
+- [ ] void moveDiagonal(MOVE* moveObject,int x, int y)
+- [ ] int isLegal(MOVE* moveObject)
+- [ ] int isLegalPAWN(MOVE* moveObject);
+- [ ] int isLegal(MOVE* moveObject);
+- [ ] int isLegalKing(MOVE* moveObject);
+- [ ] int isLegalKnight(MOVE* moveObject);
+- [ ] int isLegalPawn(MOVE* moveObject);
+- [ ] int isLegalBishop(MOVE* moveObject);
+- [ ] int isLegalRook(MOVE* moveObject);
+- [ ] int isLegalQueen(MOVE* moveObject);
