@@ -353,7 +353,10 @@ int isLegalBishop(MOVE*moveObject, BOARD* boardObject){
 	// check to see that destination is not out of board
 	if( (next_CHAR[0]>72) || (next_CHAR[0]<65) || (next_CHAR[1]<49) || (next_CHAR[1]>56) ) return 0;  
   //Andy's effort
-  if ( (next_CHAR[0] - current_CHAR[0] == 0) || (next_CHAR[1] - current_CHAR[1])
+  if ( (next_CHAR[0] - current_CHAR[0] == 0) || (next_CHAR[1] - current_CHAR[1] == 0) )
+  {
+    return 0;
+  }
   int step = abs(next_CHAR[0] - current_CHAR[0]);
   char bishop_CHAR[2];
   bishop_CHAR[0] = current_CHAR[0];
