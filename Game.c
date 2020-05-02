@@ -185,10 +185,17 @@ char* int2char(int number){
   cell[0] = number % 8 +65 ; //<---------
   cell[1] = 7 - number / 8 +49;
   return cell;
+  /*
+  char cell[2];
+  cell[0] = number % 8 +65 ; //<---------
+  cell[1] = 7 - number / 8 +49;
+  return &cell;
+  */
 }
 
 int char2int(char* myChar){
   int number = myChar[0]-65;
+//   if(number >7 || number < 0) return -1;
   // printf("%c%c", myChar[0],myChar[1]);
   int number2 = 8- atoi(&myChar[1]);
   // printf("%d, %d",number,number2);

@@ -6,6 +6,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
+#include "list.h"
 
 // struct declarations
 typedef struct piece{
@@ -82,4 +83,6 @@ int isLegalBishop(MOVE*moveObject, BOARD* boardObject);
 int isLegalPawn(MOVE* moveObject, BOARD* boardObject);
 int isLegalRook (MOVE* moveObject, BOARD* boardObject);
 int check(MOVE* myObject, BOARD* boardObject);
+NODE* possibleMoves(BOARD* myB, int source);
+
 #endif

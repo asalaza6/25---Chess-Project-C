@@ -1,11 +1,6 @@
-/*
-#include <stdio.h>
-#include <stdlib.h>
-typedef struct node {
-    int p_dest;
-    int p_from;
-    struct node * next;
-} NODE;
+#include "list.h"
+#include "Game.h"
+
 
 NODE* initializeNode(int from, int dest){
     NODE* head = (NODE *) malloc(sizeof(NODE));
@@ -16,7 +11,7 @@ NODE* initializeNode(int from, int dest){
 void print_list(NODE *head){
     NODE * current = head;
     while (current != NULL) {
-        printf("%d -> %d\n", current->p_from, current-> p_dest);
+        printf("%s -> %s\n", int2char(current->p_from),int2char(current-> p_dest));
         current = current->next;
     }
 }
@@ -56,6 +51,3 @@ void removeAll(NODE** head)
     
    *head = NULL; 
 } 
-
-
-*/

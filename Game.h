@@ -19,5 +19,4 @@ int char2int(char* myChar);
 
 void playMove(PIECES* player, BOARD* gameBoard);
 
-
 #endif

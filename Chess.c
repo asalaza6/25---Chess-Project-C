@@ -3,7 +3,9 @@
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
+#include <assert.h>
 #include "Game.h"
+#include "list.h"
 
 // local function declaration
 void moveDiagonal(MOVE* moveObject,int x, int y);
@@ -27,60 +29,53 @@ int check(MOVE* myObject, BOARD* boardObject)
 // queen = 90
 // king = 900
 
-
-
-/*
 NODE* possibleMoves(BOARD* myB, int source){
     NODE* head = NULL;
-    head = (NODE *) malloc(sizeof(NODE));
-    assert(head);
     MOVE* tempMv = (MOVE*) malloc(sizeof(MOVE));
+	tempMv->piece =  myB -> array[source];
     for(int i = 0 ; i < 64 ; i++){
-        tempMv.from = source;
-        tempMv.dest = i;
-        tempMv.piece = myB -> array[i];
-        if(isLegal(myM, myB)){
-           if(head == NULL){
-            head = (NODE *) malloc(sizeof(NODE));
-            assert(head);
-            head->p_from = source;
-            head->p_from = dest;
-           }else{
-               PushBack(head, source, i);
-           }
+        tempMv->from = source;
+        tempMv->dest = i;
+            if(isLegal(tempMv, myB)){
+				if(head == NULL){
+					head = (NODE *) malloc(sizeof(NODE));
+					assert(head);
+					head->p_from = source;
+					head->p_dest = i;
+					printf("Creating Head\n");
+				}
+				else{
+					PushBack(head, source, i);
+					printf("Pushing into List\n");
+				}
         }
+        
     }
     free(tempMv);
     return head;
 }
-void allPossibleMove(BOARD* myB, NODE* possibleArray){
-    int counter = 0;
-    // Wtf do i need to do? -> need to check all spots. 
-    for(int i = 0; i< 64 ;i++){
-        if(myB -> array[i]){ 
-            //if there's a piece at that location
-            possibleArray[counter++] = possibleMoves(myB, i);
-            }
-        }
-}
-void printPossibleMoves(int *possibleMovesArray){
-    int i = 0; // counter
-    while(possibleMovesArray[i] != -1 && i <28){
-        char* temp; 
-        temp = int2char(possibleMovesArray[i]);
-        printf("%s, ", temp );
-        free(temp);
-    }
-}
 
-int isCheckMate(MOVE* moveObject, BOARD* board,int* possibleMovesArray){
-	if(checkKing(boardObject)){
-		// king is in check; check for possible moves
-		int* array_king[8]
-		if(!possibleMoves(moveObject,board,possibleMovesArray)) return 1;
-	}
-	return 0;
-}*/
+// void allPossibleMove(BOARD* myB, NODE* possibleArray){
+//     int counter = 0;
+//     // Wtf do i need to do? -> need to check all spots. 
+//     for(int i = 0; i< 64 ;i++){
+//         if(myB -> array[i]){ 
+//             //if there's a piece at that location
+//             possibleArray[counter++] = possibleMoves(myB, i);
+//         }
+//     }
+// }
+// void printPossibleMoves(int *possibleMovesArray){
+//     int i = 0; // counter
+//     while(possibleMovesArray[i] != -1 && i <28){
+//         char* temp; 
+//         temp = int2char(possibleMovesArray[i]);
+//         printf("%s, ", temp );
+//         free(temp);
+//     }
+// }
+
+
 
 int neighbor(MOVE* myObject, BOARD* boardObject)
 {
@@ -955,8 +950,9 @@ int isLegal(MOVE* moveObject, BOARD* boardObject)
 {
 	//for isLegal move there is special return numbers
 	//for en passant result = 5
-  int result;
-  switch(moveObject-> piece->type)
+  int result= 0;
+if(moveObject->piece){
+switch(moveObject->piece->type)
   {
     case 'K':
       result = isLegalKing(moveObject,boardObject);
@@ -977,7 +973,10 @@ int isLegal(MOVE* moveObject, BOARD* boardObject)
       result = isLegalQueen(moveObject,boardObject);
       break;
   }
+}
+  
   return result;
+  //return 1;
 }
       
 //*****************
@@ -1154,7 +1153,7 @@ int isLegalKnight(MOVE* moveObject, BOARD* boardObject){
 
 	int is_legal=0;
 	if(!check(moveObject, boardObject)) return 0;
-  
+
 	// convert int to char; char* received has 2 indexes;
 	//current_CHAR[0] is from A to H; current_CHAR[1] is from 1 to 8
 	
@@ -1162,19 +1161,22 @@ int isLegalKnight(MOVE* moveObject, BOARD* boardObject){
 	char* next_CHAR = int2char(moveObject->dest);
   //check that dest is different from source
   if((current_CHAR[0]==next_CHAR[0])&&(current_CHAR[1]==next_CHAR[1])) return 0;
+
   
   // check to see that destination is not out of board
   if( next_CHAR[0]>72 || next_CHAR[0]<65 || next_CHAR[1]<49 || next_CHAR[1]>56) return 0;
-  
 	//check if the move is legal for knight in top L form
 	if( (abs(next_CHAR[0] - current_CHAR[0]) == 1) && (abs(next_CHAR[1] - current_CHAR[1]) == 2) )
 	{
+
 		is_legal=1;
 	}
   
   //check if the move is legal for knight in L gun form
   if( (abs(next_CHAR[0] - current_CHAR[0]) == 2) && (abs(next_CHAR[1] - current_CHAR[1]) == 1) )
   {
+          
+
     is_legal=1;
   }
   return is_legal;
@@ -1374,49 +1376,89 @@ int isLegalPawn(MOVE* moveObject, BOARD* boardObject){
 	}
 	return 0;
 }
+/* Returns a 1 if black king is in check, return a 2 if white king is in check, returns a 0 if no check */
+int checkmateKing(BOARD* boardObject,PIECE* kingObject){
+	int check = checkKing(boardObject);
+	MOVE* move = (MOVE*)malloc(sizeof(MOVE));
+	move->from = kingObject->position;
+	move->piece = kingObject;
+	printf("Check - %d\n",check);
+	if(check == 1 && kingObject->color == 0){//black king is in check
+		for(int i = 0; i < 64; i++){
+			move->dest = i;
+
+			if(isLegal(move, boardObject)){//check if king has a possible move
+				free(move);
+				return 1;
+			}
+		}
+	}else if(check == 2 && kingObject->color == 1){
+		for(int i = 0; i < 64; i++){
+			move->dest = i;
+			if(isLegal(move, boardObject)){//check if king has a possible move
+				free(move);
+				return 1;
+			}
+		}
+	}
+	free(move);
+	return 0;
+}
 int isLegalRook (MOVE* moveObject, BOARD* boardObject) {
 	
   if(!check(moveObject, boardObject)) return 0;
-  
+  //printf("Line 1383");
+	
 	char* current_CHAR = int2char(moveObject->from);
 	char* next_CHAR = int2char(moveObject->dest);
-	
+	/*
+	char tempChar[2];
+	PIECE* tempPiece;
+	//vertical
+	int sign = next_CHAR[1]-current_CHAR[1] > 0 ? 1:-1;
+	do{
+			tempPiece = boardObject->array[char2int(tempChar)];
+			//check if reach rook
+			if(tempPiece && tempPiece->type == 82 && tempPiece->special == 0){
+				printf("Detected Castle Move");
+				//store rook that will be moved
+				boardObject->lastMove->piece = tempPiece;
+				//give location of rook will be 1 above the last
+				boardObject->lastMove->from = char2int(tempChar);
+				tempChar[0] = current_CHAR[0] + sign;
+				boardObject->lastMove->dest = char2int(tempChar);
+				return 6;
+			}
+			tempChar[1] = tempChar[1] + sign;
+		}while(tempPiece == 0);
+	*/
 	// check that dest is different from source 
 	if((current_CHAR[0]==next_CHAR[0])&&(current_CHAR[1]==next_CHAR[1])) return 0;
-  
-	// check to see that destination is not out of board
-//	if( next_CHAR[0]>72 || next_CHAR[0]<65 || next_CHAR[1]<49 || next_CHAR[1]>56) result = 0; 
-	
-	// check Rook's legal moves
+
 	// vertical move
 	if(current_CHAR[0]==next_CHAR[0]){
-		int step1 = abs(next_CHAR[1]-current_CHAR[1]);
+	int step1 = abs(next_CHAR[1]-current_CHAR[1]);
     char rookCHAR[2];
     rookCHAR[0] = current_CHAR[0];
     rookCHAR[1] = current_CHAR[1];
-    printf("rookCHAR is %s\n", rookCHAR);
-		for (int i=1; i<step1; i++ )
-    {
-      if ( (next_CHAR[1] - current_CHAR[1]) > 0)
-      {
-        rookCHAR[1] = rookCHAR[1] + i;
-        printf("rookCHAR is %s\n", rookCHAR);
-      }
-      if ( (next_CHAR[1] - current_CHAR[1]) < 0)
-      {
-        rookCHAR[1] = rookCHAR[1] - i;
-        printf("rookCHAR is %s\n", rookCHAR);
-      }
-			if( boardObject -> array[char2int(rookCHAR)] == 0)
-      {
-       
-        break;
-      }
-      if ( boardObject -> array[char2int(rookCHAR)] != 0)
-      {
-        return 0;
-        break;
-      }
+    
+	printf("rookCHAR is %s\n", rookCHAR);
+		for (int i=1; i<step1; i++ ){
+			if ( (next_CHAR[1] - current_CHAR[1]) > 0){ //checks if moving down
+				rookCHAR[1] = rookCHAR[1] + i;
+				printf("rookCHAR is %s\n", rookCHAR);
+			}
+			if ( (next_CHAR[1] - current_CHAR[1]) < 0){//checks if moving up
+				rookCHAR[1] = rookCHAR[1] - i;
+				printf("rookCHAR is %s\n", rookCHAR);
+			}
+			if( boardObject -> array[char2int(rookCHAR)] == 0){//checks if no object exists
+				break;
+			}
+			if ( boardObject -> array[char2int(rookCHAR)] != 0){
+				return 0;
+				break;
+			}
        
 		}
 	}
@@ -1449,6 +1491,10 @@ int isLegalRook (MOVE* moveObject, BOARD* boardObject) {
       }
     }
 	} 
+	
+	if(current_CHAR[0] != next_CHAR[0] && current_CHAR[1] != next_CHAR[1]){
+		return 0;
+	}
 	if(moveObject->piece->special == 0){
 		//change in special variable denotes rook has moved now.
 		moveObject->piece->special = 1; 
