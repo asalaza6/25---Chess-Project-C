@@ -8,7 +8,10 @@ DESIGN = Main
 # Default target
 all: Main
 
-######################### Generate object files #######################
+######################### Generate object files ######################
+#Target for Chess.o
+Game.o: Game.c Game.h
+	gcc -c Game.c -o Game.o $(FLAGS)
 # Target for Chess.o
 Chess.o: Chess.c Chess.h
 	gcc -c Chess.c -o Chess.o $(FLAGS)
@@ -18,13 +21,14 @@ main.o: Chess.h main.c
 
 ######################### Generate the executable #####################
 # Target for Main
-Main: Chess.o main.o
-	gcc  main.c Chess.o -o Main $(FLAGS)
+Main: Chess.o main.o Game.o
+	gcc  main.c Chess.o Game.o -o Main $(FLAGS)
 
 ###############################  others  ##############################
 # Target for clean
 clean:
 	rm -f *.o $(DESIGN)
-
+tar:
+	tar -czvf ../Chess_Alpha_src.tar.gz ../Chess_Alpha_src
    
 

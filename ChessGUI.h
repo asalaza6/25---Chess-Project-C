@@ -1,0 +1,35 @@
+/* This is the header file for the Chess GUI */
+
+#ifndef CHESSGUI_H
+#define CHESSGUI_H
+
+#define MAX_GLEN 400
+#define SQUARE_SIZE 50
+#define WINDOW_BORDER 10
+#define BOARD_BORDER 10
+#define BOARD_WIDTH (8*SQUARE_SIZE)
+#define BOARD_HEIGHT (8*SQUARE_SIZE)
+#define WINDOW_WIDTH (BOARD_WIDTH + 2*BOARD_BORDER)
+#define WINDOW_HEIGHT (BOARD_HEIGHT + 2*BOARD_BORDER)
+
+
+
+enum GRID
+{
+        BLACK = 0,
+        WHITE = 1,
+        WHITE_KING,
+	WHITE_QUEEN,
+	WHITE_KNIGHT,
+	WHITE_BISHOP,
+	WHITE_ROOK,
+	WHITE_PAWN,
+	BLACK_KING,
+	BLACK_QUEEN,
+	BLACK_KNIGHT,
+	BLACK_BISHOP,
+	BLACK_ROOK,
+	BLACK_PAWN
+};
+
+#endif

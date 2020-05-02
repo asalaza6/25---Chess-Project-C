@@ -3,14 +3,13 @@
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
+#include "Game.h"
 
-
-//local function declaration
+// local function declaration
 void moveDiagonal(MOVE* moveObject,int x, int y);
-// Returns 1 if empty, 2 if enemy piece and 0 if occupied by own piece
+// Returns 1 if empty, 2 if enemy piece is present and 0 if occupied by own piece
 int check(MOVE* myObject, BOARD* boardObject)
 {
-  
     //Check emptiness
     if(!(boardObject-> array[myObject->dest])){
       return 1;
@@ -18,28 +17,51 @@ int check(MOVE* myObject, BOARD* boardObject)
     //check Opponent.
     if(myObject -> piece -> color != boardObject->array[ myObject -> dest]-> color ){
       return 2;
-    }
-  	
+    } 	
 	return 0;
 
-  }
+}
+// pawn = 10
+// horse, bishop = 30
+// castle = 50
+// queen = 90
+// king = 900
+
+
+
 /*
-int possibleMovesArray[28];
-int* possibleMoves(MOVE *myM, BOARD* myB, int* myArray ){
-    int j = 0; //Keeping count of number of possible moves
-    //Initially setting all the values in the possibleMoves array to -1;
-    for(int i = 0; i< 28; i++){
-        possibleMovesArray[i] = -1;
-    }
-    //Feeding in the enire board into the islegalFunction
+NODE* possibleMoves(BOARD* myB, int source){
+    NODE* head = NULL;
+    head = (NODE *) malloc(sizeof(NODE));
+    assert(head);
+    MOVE* tempMv = (MOVE*) malloc(sizeof(MOVE));
     for(int i = 0 ; i < 64 ; i++){
-        myM-> dest = i;
+        tempMv.from = source;
+        tempMv.dest = i;
+        tempMv.piece = myB -> array[i];
         if(isLegal(myM, myB)){
-          myArray[j++] = myM -> dest;  
-        }else{
-            continue;
+           if(head == NULL){
+            head = (NODE *) malloc(sizeof(NODE));
+            assert(head);
+            head->p_from = source;
+            head->p_from = dest;
+           }else{
+               PushBack(head, source, i);
+           }
         }
     }
+    free(tempMv);
+    return head;
+}
+void allPossibleMove(BOARD* myB, NODE* possibleArray){
+    int counter = 0;
+    // Wtf do i need to do? -> need to check all spots. 
+    for(int i = 0; i< 64 ;i++){
+        if(myB -> array[i]){ 
+            //if there's a piece at that location
+            possibleArray[counter++] = possibleMoves(myB, i);
+            }
+        }
 }
 void printPossibleMoves(int *possibleMovesArray){
     int i = 0; // counter
@@ -50,12 +72,19 @@ void printPossibleMoves(int *possibleMovesArray){
         free(temp);
     }
 }
-*/
+
+int isCheckMate(MOVE* moveObject, BOARD* board,int* possibleMovesArray){
+	if(checkKing(boardObject)){
+		// king is in check; check for possible moves
+		int* array_king[8]
+		if(!possibleMoves(moveObject,board,possibleMovesArray)) return 1;
+	}
+	return 0;
+}*/
 
 int neighbor(MOVE* myObject, BOARD* boardObject)
 {
   char* current_CHAR = int2char(myObject->from);
-  
   int result = 0;
 	current_CHAR[0] += 1 ;
   PIECE *Ptemp = boardObject-> array[char2int(current_CHAR)];
@@ -82,9 +111,850 @@ int neighbor(MOVE* myObject, BOARD* boardObject)
     // Both possible -> 3
 }
 
+//this just checks if an enemy piece exists at that location with specific type
+int checkSpace(int color, char type, int position, BOARD* boardObject){
+	if(position < 0 || position > 63){
+		return 0;
+	}
+	if (boardObject->array[position]!= 0){ 
+		if ( boardObject->array[position] -> color == color && boardObject->array[position] -> type == type)
+		{
+		//result = result + 1;
+		return 1;
+		}
+  	}
+	return 0;
+}
+
+/* Returns a 1 if black king is in check, return a 2 if white king is in check, returns a 0 if no check */
+int checkKing(BOARD* boardObject)
+{
+  //int result;
+  char* blackKING;
+  char* whiteKING;
+  int position = 0;
+ 
+  //int orientation = 0;
+  char whiteKnight[2];
+  char blackKnight[2];
+  char diagonal[2];
+  char rookQueen[2];
+  //Gets the position of the black king and white king
+  for(int i = 0; i < 64; i++)
+  {
+    position = i;
+    if (boardObject->array[position] != NULL)
+    {
+      if(boardObject->array[position]->type == 'K')
+      {
+        if (boardObject->array[position]->color == 0)
+        {
+          blackKING = int2char(position);
+        }
+      }
+      if(boardObject->array[position]->color == 1 && boardObject->array[position]->type == 'K')
+      {
+        whiteKING = int2char(position);
+      }
+    }
+  }
+  //black player, checks if white knight has black king in check
+  //Top L Right Check 
+  whiteKnight[0] = blackKING[0] + 1;
+  whiteKnight[1] = blackKING[1] + 2;
+  position = char2int(whiteKnight);
+  //107 = 'k' in char
+  if(checkSpace(1, 'k', position, boardObject)){
+	  return 1;
+  }
+  /*
+  if (boardObject->array[char2int(whiteKnight)] != NULL)
+  { 
+    if ( boardObject->array[char2int(whiteKnight)] -> color == 1 && boardObject->array[char2int(whiteKnight)] -> type == 'k')
+    {
+      //result = result + 1;
+      return 1;
+    }
+  }*/
+  //Top L Left Check
+  whiteKnight[0] = blackKING[0] - 1;
+  whiteKnight[1] = blackKING[1] + 2;
+  position = char2int(whiteKnight);
+  //107 = 'k' in char
+  if(checkSpace(1, 'k', position, boardObject)){
+	  return 1;
+  }
+  /*
+  if (boardObject->array[char2int(whiteKnight)] != NULL)
+  { 
+    if ( boardObject->array[char2int(whiteKnight)] -> color == 1 && boardObject->array[char2int(whiteKnight)] -> type == 'k')
+    {
+      //result = result + 1;
+      return 1;
+    }
+  }*/
+  //Top Right Gun
+ 
+  whiteKnight[0] = blackKING[0] + 2;
+  whiteKnight[1] = blackKING[1] + 1;
+  position = char2int(whiteKnight);
+  
+  //107 = 'k' in char
+  if(checkSpace(1, 'k', position, boardObject)){
+	  return 1;
+  }
+  //Top Left Gun
+  whiteKnight[0] = blackKING[0] - 2;
+  whiteKnight[1] = blackKING[1] + 1;
+  position = char2int(whiteKnight);
+  //107 = 'k' in char
+  if(checkSpace(1, 'k', position, boardObject)){
+	  return 1;
+  }
+  /*
+  if (boardObject->array[char2int(whiteKnight)] != NULL)
+  { 
+    if ( boardObject->array[char2int(whiteKnight)] -> color == 1 && boardObject->array[char2int(whiteKnight)] -> type == 'k')
+    {
+      //result = result + 1;
+      return 1;
+    }
+  }*/
+  //Bottom L Left Check
+  whiteKnight[0] = blackKING[0] - 1;
+  whiteKnight[1] = blackKING[1] - 2;
+  position = char2int(whiteKnight);
+  //107 = 'k' in char
+  if(checkSpace(1, 'k', position, boardObject)){
+	  return 1;
+  }
+  /*
+  if (boardObject->array[char2int(whiteKnight)] != NULL)
+  { 
+    if (char2int(whiteKnight) <= 63 && char2int(whiteKnight) >= 0)
+    {
+      if ( boardObject->array[char2int(whiteKnight)] -> color == 1 && boardObject->array[char2int(whiteKnight)] -> type == 'k')
+      {
+        //result = result + 1;
+        return 1;
+      }
+    }
+  }*/
+  //Bottom L Right Check
+  whiteKnight[0] = blackKING[0] + 1;
+  whiteKnight[1] = blackKING[1] - 2;
+  position = char2int(whiteKnight);
+  //107 = 'k' in char
+  if(checkSpace(1, 'k', position, boardObject)){
+	  return 1;
+  }
+  /*
+   if (boardObject->array[char2int(whiteKnight)] != NULL)
+  { 
+    if ( boardObject->array[char2int(whiteKnight)] -> color == 1 && boardObject->array[char2int(whiteKnight)] -> type == 'k')
+    {
+      //result = result + 1;
+      return 1;
+    }
+  }*/
+  //Bottom Left Gun
+  whiteKnight[0] = blackKING[0] - 2;
+  whiteKnight[1] = blackKING[1] - 1;
+  position = char2int(whiteKnight);
+  //107 = 'k' in char
+  if(checkSpace(1, 'k', position, boardObject)){
+	  return 1;
+  }
+  /*
+  if (boardObject->array[char2int(whiteKnight)] != NULL)
+  { 
+    if ( boardObject->array[char2int(whiteKnight)] -> color == 1 && boardObject->array[char2int(whiteKnight)] -> type == 'k')
+    {
+      //result = result + 1;
+      return 1;
+    }
+  }*/
+  //Bottom Right Gun
+  whiteKnight[0] = blackKING[0] + 2;
+  whiteKnight[1] = blackKING[1] - 1;
+  position = char2int(whiteKnight);
+  //107 = 'k' in char
+  if(checkSpace(1, 'k', position, boardObject)){
+	  return 1;
+  }
+  /*
+  if ( boardObject->array[char2int(whiteKnight)] -> color == 1 && boardObject->array[char2int(whiteKnight)] -> type == 'k')
+  {
+    //result = result + 1;
+    return 1;
+  }
+	*/
+  //white player, checks if black knight has white king in check
+  //Top L Right Check 
+  blackKnight[0] = whiteKING[0] + 1;
+  blackKnight[1] = whiteKING[1] + 2;
+  position = char2int(blackKnight);
+  //107 = 'k' in char
+  if(checkSpace(0, 107, position, boardObject)){
+	  return 2;
+  }
+  /*
+  if (boardObject->array[char2int(blackKnight)] != NULL)
+  { 
+    if ( boardObject->array[char2int(blackKnight)] -> color == 0 && boardObject->array[char2int(blackKnight)] -> type == 'k')
+    {
+      //result = result + 2;
+      return 2;
+    }
+  }*/
+  //Top L Left Check
+  blackKnight[0] = whiteKING[0] - 1;
+  blackKnight[1] = whiteKING[1] + 2;
+  position = char2int(blackKnight);
+  //107 = 'k' in char
+  if(checkSpace(0, 'k', position, boardObject)){
+	  return 1;
+  }
+  //Top Right Gun
+  blackKnight[0] = whiteKING[0] + 2;
+  blackKnight[1] = whiteKING[1] + 1;
+  position = char2int(blackKnight);
+  //107 = 'k' in char
+  if(checkSpace(0, 107, position, boardObject)){
+	  return 2;
+  }
+  /*
+  if (boardObject->array[char2int(blackKnight)] != NULL)
+  {
+    if ( boardObject->array[char2int(blackKnight)] -> color == 0 && boardObject->array[char2int(blackKnight)] -> type == 'k')
+    {
+      //result = result + 2;
+      return 2;
+    }
+  }*/
+  //Top Left Gun
+  blackKnight[0] = whiteKING[0] - 2;
+  blackKnight[1] = whiteKING[1] + 1;
+  position = char2int(blackKnight);
+  //107 = 'k' in char
+  if(checkSpace(0, 107, position, boardObject)){
+	  return 2;
+  }
+  /*
+  if (boardObject->array[char2int(blackKnight)] != NULL)
+  {
+    if ( boardObject->array[char2int(blackKnight)] -> color == 0 && boardObject->array[char2int(blackKnight)] -> type == 'k')
+    {
+      //result = result + 2;
+      return 2;
+    }
+  }*/
+  //Bottom L Left Check
+  blackKnight[0] = whiteKING[0] - 1;
+  blackKnight[1] = whiteKING[1] - 2;
+  
+  if(checkSpace(0, 107, char2int(blackKnight), boardObject)){
+	  return 2;
+  }
+  /*if (boardObject->array[char2int(blackKnight)] != NULL)
+  {
+    if ( boardObject->array[char2int(blackKnight)] -> color == 0 && boardObject->array[char2int(blackKnight)] -> type == 'k')
+    {
+      //result = result + 2;
+      return 2;
+    }
+  }*/
+  //Bottom L Right Check
+  blackKnight[0] = whiteKING[0] + 1;
+  blackKnight[1] = whiteKING[1] - 2;
+   if(checkSpace(0, 107, char2int(blackKnight), boardObject)){
+	  return 2;
+  }
+  /*
+  if (boardObject->array[char2int(blackKnight)] != NULL)
+  {
+    if ( boardObject->array[char2int(blackKnight)] -> color == 0 && boardObject->array[char2int(blackKnight)] -> type == 'k')
+    {
+      //result = result + 2;
+      return 2;
+    }
+  }*/
+  //Bottom Left Gun
+  blackKnight[0] = whiteKING[0] - 2;
+  blackKnight[1] = whiteKING[1] - 1;
+   if(checkSpace(0, 107, char2int(blackKnight), boardObject)){
+	  return 2;
+  }
+  /*
+  if (boardObject->array[char2int(blackKnight)] != NULL)
+  {
+    if ( boardObject->array[char2int(blackKnight)] -> color == 0 && boardObject->array[char2int(blackKnight)] -> type == 'k')
+    {
+      //result = result + 2;
+      return 2;
+    }
+  }*/
+  //Bottom Right Gun
+  blackKnight[0] = whiteKING[0] + 2;
+  blackKnight[1] = whiteKING[1] - 1;
+   if(checkSpace(0, 107, char2int(blackKnight), boardObject)){
+	  return 2;
+  }
+  /*
+  if (boardObject->array[char2int(blackKnight)] != NULL)
+  {
+    if (char2int(blackKnight) <= 63 && char2int(blackKnight) >= 0)
+    {
+      if ( boardObject->array[char2int(blackKnight)] -> color == 0 && boardObject->array[char2int(blackKnight)] -> type == 'k')
+      {
+        //result = result + 2;
+        return 2;
+      }
+    }
+  } */
+
+  //black player, checks if white pawn or white queen or white bishop has king in check within one space
+  //Top Right
+  diagonal[0] = blackKING[0] + 1;
+  diagonal[1] = blackKING[1] + 1;
+  position = char2int(diagonal);
+  if(checkSpace(1, 'B', position, boardObject) || checkSpace(1, 'Q', position, boardObject)){
+	  return 1;
+  }
+  /*
+  if (boardObject->array[char2int(diagonal)] != NULL)
+  {
+    if ( (boardObject->array[char2int(diagonal)] -> color == 1) && ((boardObject->array[char2int(diagonal)] -> type == 'P') || (boardObject->array[char2int(diagonal)] -> type == 'B') || (boardObject->array[char2int(diagonal)] -> type == 'Q')))
+    {
+      //result = result + 1;
+      return 1;
+    }
+  }*/
+  //Top Left
+  diagonal[0] = blackKING[0] - 1;
+  diagonal[1] = blackKING[1] + 1;
+  position = char2int(diagonal);
+  if(checkSpace(1, 'B', position, boardObject) || checkSpace(1, 'Q', position, boardObject)){
+	  return 1;
+  }
+  /*
+  if (boardObject->array[char2int(diagonal)] != NULL)
+  {
+    if ( (boardObject->array[char2int(diagonal)] -> color == 1) && ((boardObject->array[char2int(diagonal)] -> type == 'P') || (boardObject->array[char2int(diagonal)] -> type == 'B') || (boardObject->array[char2int(diagonal)] -> type == 'Q')))
+    {
+      //result = result + 1;
+      return 1;
+    }
+  }*/
+  //Bottom Right
+  diagonal[0] = blackKING[0] + 1;
+  diagonal[1] = blackKING[1] - 1;
+  position = char2int(diagonal);
+  if(checkSpace(1, 'B', position, boardObject) || checkSpace(1, 'Q', position, boardObject) || checkSpace(1, 'P', position, boardObject)){
+	  return 1;
+  }
+  /*
+  if (boardObject->array[char2int(diagonal)] != NULL)
+  {
+    if ( (boardObject->array[char2int(diagonal)] -> color == 1) && ((boardObject->array[char2int(diagonal)] -> type == 'P') || (boardObject->array[char2int(diagonal)] -> type == 'B') || (boardObject->array[char2int(diagonal)] -> type == 'Q')))
+    {
+      //result = result + 1;
+      return 1;
+    }
+  }*/
+  //Bottom Left
+  diagonal[0] = blackKING[0] - 1;
+  diagonal[1] = blackKING[1] - 1;
+  position = char2int(diagonal);
+  if(checkSpace(1, 'B', position, boardObject) || checkSpace(1, 'Q', position, boardObject) || checkSpace(1, 'P', position, boardObject)){
+	  return 1;
+  }
+  /*
+  if (boardObject->array[char2int(diagonal)] != NULL)
+  {
+    if ( (boardObject->array[char2int(diagonal)] -> color == 1) && ((boardObject->array[char2int(diagonal)] -> type == 'P') || (boardObject->array[char2int(diagonal)] -> type == 'B') || (boardObject->array[char2int(diagonal)] -> type == 'Q')))
+    {
+      //result = result + 1;
+      return 1;
+    }
+  }*/
+
+  //white player, checks if black pawn or black queen or black bishop has king in check within one space
+  //Top Right
+  diagonal[0] = whiteKING[0] + 1;
+  diagonal[1] = whiteKING[1] + 1;
+  position = char2int(diagonal);
+  if(checkSpace(0, 'B', position, boardObject) || checkSpace(0, 'Q', position, boardObject) || checkSpace(0, 'P', position, boardObject)){
+	  return 2;
+  }
+  /*
+  if (boardObject->array[char2int(diagonal)] != NULL)
+  {
+    if ( (boardObject->array[char2int(diagonal)] -> color == 0) && ((boardObject->array[char2int(diagonal)] -> type == 'P') || (boardObject->array[char2int(diagonal)] -> type == 'B') || (boardObject->array[char2int(diagonal)] -> type == 'Q')))
+    {
+      //result = result + 2;
+      return 2;
+    }
+  }*/
+  //Top Left
+  diagonal[0] = whiteKING[0] - 1;
+  diagonal[1] = whiteKING[1] + 1;
+  if(checkSpace(0, 'B', position, boardObject) || checkSpace(0, 'Q', position, boardObject) || checkSpace(0, 'P', position, boardObject)){
+	  return 2;
+  }
+  /*
+  if (boardObject->array[char2int(diagonal)] != NULL)
+  {
+    if ( (boardObject->array[char2int(diagonal)] -> color == 0) && ((boardObject->array[char2int(diagonal)] -> type == 'P') || (boardObject->array[char2int(diagonal)] -> type == 'B') || (boardObject->array[char2int(diagonal)] -> type == 'Q')))
+    {
+      //result = result + 2;
+      return 2;
+    }
+  }*/
+  //Bottom Right
+  diagonal[0] = whiteKING[0] + 1;
+  diagonal[1] = whiteKING[1] - 1;
+  if(checkSpace(0, 'B', position, boardObject) || checkSpace(0, 'Q', position, boardObject)){
+	  return 2;
+  }
+  /*
+  if (boardObject->array[char2int(diagonal)] != NULL)
+  {
+    if ( (boardObject->array[char2int(diagonal)] -> color == 0) && ((boardObject->array[char2int(diagonal)] -> type == 'P') || (boardObject->array[char2int(diagonal)] -> type == 'B') || (boardObject->array[char2int(diagonal)] -> type == 'Q')))
+    {
+      //result = result + 2;
+      return 2;
+    }
+  }*/
+  //Bottom Left
+  diagonal[0] = whiteKING[0] - 1;
+  diagonal[1] = whiteKING[1] - 1;
+  if(checkSpace(0, 'B', position, boardObject) || checkSpace(0, 'Q', position, boardObject)){
+	  return 2;
+  }
+  /*
+  if (boardObject->array[char2int(diagonal)] != NULL)
+  {
+    if ( (boardObject->array[char2int(diagonal)] -> color == 0) && ((boardObject->array[char2int(diagonal)] -> type == 'P') || (boardObject->array[char2int(diagonal)] -> type == 'B') || (boardObject->array[char2int(diagonal)] -> type == 'Q')))
+    {
+      //result = result + 2;
+      return 2;
+    }
+  }*/
+  //black player, checks if white bishop or queen has king in check in space > 1
+  //Bottom Right
+  diagonal[0] = blackKING[0];
+  diagonal[1] = blackKING[1];
+  if (boardObject->array[char2int(diagonal)] != NULL)
+  {
+    for(int i = 1; i < 8; i++)
+    {
+      diagonal[0] = diagonal[0] + i;
+      diagonal[1] = diagonal[1] - i;
+	  position = char2int(diagonal);
+	  if(checkSpace(1, 'B', position, boardObject) || checkSpace(1, 'Q', position, boardObject)){
+	  	return 1;
+  	  }
+	  /*
+      if ( (boardObject->array[char2int(diagonal)] -> color == 1) && ((boardObject->array[char2int(diagonal)] -> type == 'B') || (boardObject->array[char2int(diagonal)] -> type == 'Q')))
+      {
+        //result = result + 1;
+        return 1;
+      }*/
+      if (boardObject->array[char2int(diagonal)] != 0)
+      {
+        break;
+      }
+    }
+  }
+  //Bottom Left
+  diagonal[0] = blackKING[0];
+  diagonal[1] = blackKING[1];
+  if (boardObject->array[char2int(diagonal)] != NULL)
+  {
+    for(int i = 1; i < 8; i++)
+    {
+      diagonal[0] = diagonal[0] - i;
+      diagonal[1] = diagonal[1] - i;
+	  position = char2int(diagonal);
+	  if(checkSpace(1, 'B', position, boardObject) || checkSpace(1, 'Q', position, boardObject)){
+	  	return 1;
+  	  }
+		/*
+      if ( (boardObject->array[char2int(diagonal)] -> color == 1) && ((boardObject->array[char2int(diagonal)] -> type == 'B') || (boardObject->array[char2int(diagonal)] -> type == 'Q')))
+      {
+        //result = result + 1;
+        return 1;
+        break;
+      }*/
+      if (boardObject->array[char2int(diagonal)] != 0)
+      {
+        break;
+      }
+    }
+  }
+  //Top Right
+  diagonal[0] = blackKING[0];
+  diagonal[1] = blackKING[1];
+  if (boardObject->array[char2int(diagonal)] != NULL)
+  {
+    for(int i = 1; i < 8; i++)
+    {
+      diagonal[0] = diagonal[0] + i;
+      diagonal[1] = diagonal[1] + i;
+	  position = char2int(diagonal);
+	  if(checkSpace(1, 'B', position, boardObject) || checkSpace(1, 'Q', position, boardObject)){
+	  	return 1;
+  	  }
+		/*
+      if ( (boardObject->array[char2int(diagonal)] -> color == 1) && ((boardObject->array[char2int(diagonal)] -> type == 'B') || (boardObject->array[char2int(diagonal)] -> type == 'Q')))
+      {
+        //result = result + 1;
+        return 1;
+        break;
+      }*/
+      if (boardObject->array[char2int(diagonal)] != 0)
+      {
+        break;
+      }
+    }
+  }
+  //Top Left
+  diagonal[0] = blackKING[0];
+  diagonal[1] = blackKING[1];
+  if (boardObject->array[char2int(diagonal)] != NULL)
+  {
+    for(int i = 1; i < 8; i++)
+    {
+      diagonal[0] = diagonal[0] - i;
+      diagonal[1] = diagonal[1] + i;
+	  position = char2int(diagonal);
+	  if(checkSpace(1, 'B', position, boardObject) || checkSpace(1, 'Q', position, boardObject)){
+	  	return 1;
+  	  }
+	  /*
+      if ( (boardObject->array[char2int(diagonal)] -> color == 1) && ((boardObject->array[char2int(diagonal)] -> type == 'B') || (boardObject->array[char2int(diagonal)] -> type == 'Q')))
+      {
+        //result = result + 1;
+        return 1;
+        break;
+      }*/
+      if (boardObject->array[char2int(diagonal)] != 0)
+      {
+        break;
+      }
+    }
+  }
+
+  //white player, checks if black bishop or queen has king in check in space > 1
+  //Bottom Right
+  diagonal[0] = whiteKING[0];
+  diagonal[1] = whiteKING[1];
+  if (boardObject->array[char2int(diagonal)] != NULL)
+  {
+    for(int i = 1; i < 8; i++)
+    {
+      diagonal[0] = diagonal[0] + i;
+      diagonal[1] = diagonal[1] - i;
+	  position = char2int(diagonal);
+	  if(checkSpace(0, 'B', position, boardObject) || checkSpace(0, 'Q', position, boardObject)){
+	  	return 2;
+  	  }
+	  /*
+      if ( (boardObject->array[char2int(diagonal)] -> color == 0) && ((boardObject->array[char2int(diagonal)] -> type == 'B') || (boardObject->array[char2int(diagonal)] -> type == 'Q')))
+      {
+        //result = result + 2;
+        return 2;
+        break;
+      }*/
+      if (boardObject->array[char2int(diagonal)] != 0)
+      {
+        break;
+      }
+    }
+  }
+  //Bottom Left
+  diagonal[0] = whiteKING[0];
+  diagonal[1] = whiteKING[1];
+  if (boardObject->array[char2int(diagonal)] != NULL)
+  {
+    for(int i = 1; i < 8; i++)
+    {
+      diagonal[0] = diagonal[0] - i;
+      diagonal[1] = diagonal[1] - i;
+	  position = char2int(diagonal);
+	  if(checkSpace(0, 'B', position, boardObject) || checkSpace(0, 'Q', position, boardObject)){
+	  	return 2;
+  	  }
+		/*
+      if ( (boardObject->array[char2int(diagonal)] -> color == 0) && ((boardObject->array[char2int(diagonal)] -> type == 'B') || (boardObject->array[char2int(diagonal)] -> type == 'Q')))
+      {
+        //result = result + 2;
+        return 2;
+        break;
+      }*/
+      if (boardObject->array[char2int(diagonal)] != 0)
+      {
+        break;
+      }
+    }
+  }
+  //Top Right
+  diagonal[0] = whiteKING[0];
+  diagonal[1] = whiteKING[1];
+  if (boardObject->array[char2int(diagonal)] != NULL)
+  {
+    for(int i = 1; i < 8; i++)
+    {
+      diagonal[0] = diagonal[0] + i;
+      diagonal[1] = diagonal[1] + i;
+	  position = char2int(diagonal);
+	  if(checkSpace(0, 'B', position, boardObject) || checkSpace(0, 'Q', position, boardObject)){
+	  	return 2;
+  	  }/*
+      if ( (boardObject->array[char2int(diagonal)] -> color == 0) && ((boardObject->array[char2int(diagonal)] -> type == 'B') || (boardObject->array[char2int(diagonal)] -> type == 'Q')))
+      {
+        //result = result + 2;
+        return 2;
+        break;
+      }*/
+      if (boardObject->array[char2int(diagonal)] != 0)
+      {
+        break;
+      }
+    }
+  }
+  //Top Left
+  diagonal[0] = whiteKING[0];
+  diagonal[1] = whiteKING[1];
+  if (boardObject->array[char2int(diagonal)] != NULL)
+  {
+    for(int i = 1; i < 8; i++)
+    {
+      diagonal[0] = diagonal[0] - i;
+      diagonal[1] = diagonal[1] + i;
+	  position = char2int(diagonal);
+	  if(checkSpace(0, 'B', position, boardObject) || checkSpace(0, 'Q', position, boardObject)){
+	  	return 2;
+  	  }/*
+      if ( (boardObject->array[char2int(diagonal)] -> color == 0) && ((boardObject->array[char2int(diagonal)] -> type == 'B') || (boardObject->array[char2int(diagonal)] -> type == 'Q')))
+      {
+        //result = result + 2;
+        return 2;
+        break;
+      }*/
+      if (boardObject->array[char2int(diagonal)] != 0)
+      {
+        break;
+      }
+    }
+  }
+
+  //black player, checks if white queen or rook has black king in check from horizontal and vertical
+  //Up
+  rookQueen[0] = blackKING[0];
+  rookQueen[1] = blackKING[1];
+  if (boardObject->array[char2int(rookQueen)] != NULL)
+  {
+    for(int k = 1; k < 8; k++)
+    {
+      rookQueen[1] = rookQueen[1] + k;
+	  position = char2int(rookQueen);
+	  if(checkSpace(1, 'R', position, boardObject) || checkSpace(1, 'Q', position, boardObject)){
+	  	return 1;
+  	  }
+	/*
+      if ( (boardObject->array[char2int(rookQueen)] -> color == 1) && ((boardObject->array[char2int(diagonal)] -> type == 'R') || (boardObject->array[char2int(diagonal)] -> type == 'Q')))
+      {
+        //result = result + 1;
+        return 1;
+        break;
+      }*/
+      if (boardObject->array[char2int(rookQueen)] != 0)
+      {
+        break;
+      }
+    }
+  }
+  //Down
+  rookQueen[0] = blackKING[0];
+  rookQueen[1] = blackKING[1];
+  if (boardObject->array[char2int(rookQueen)] != NULL)
+  {
+    for(int k = 1; k < 8; k++)
+    {
+      rookQueen[1] = rookQueen[1] - k;
+	  position = char2int(rookQueen);
+	  if(checkSpace(1, 'R', position, boardObject) || checkSpace(1, 'Q', position, boardObject)){
+	  	return 1;
+  	  }
+		/*
+      if ( (boardObject->array[char2int(rookQueen)] -> color == 1) && ((boardObject->array[char2int(diagonal)] -> type == 'R') || (boardObject->array[char2int(diagonal)] -> type == 'Q')))
+      {
+        //result = result + 1;
+        return 1;
+        break;
+      }*/
+      if (boardObject->array[char2int(rookQueen)] != 0)
+      {
+        break;
+      }
+    } 
+  }
+  //Right
+  rookQueen[0] = blackKING[0];
+  rookQueen[1] = blackKING[1];
+  if (boardObject->array[char2int(rookQueen)] != NULL)
+  {
+    for(int k = 1; k < 8; k++)
+    {
+      rookQueen[0] = rookQueen[0] + k;
+	  position = char2int(rookQueen);
+	  if(checkSpace(1, 'R', position, boardObject) || checkSpace(1, 'Q', position, boardObject)){
+	  	return 1;
+  	  }/*
+      if ( (boardObject->array[char2int(rookQueen)] -> color == 1) && ((boardObject->array[char2int(diagonal)] -> type == 'R') || (boardObject->array[char2int(diagonal)] -> type == 'Q')))
+      {
+        //result = result + 1;
+        return 1;
+        break;
+      }*/
+      if (boardObject->array[char2int(rookQueen)] != 0)
+      {
+        break;
+      }
+    } 
+  }
+  //Left
+  rookQueen[0] = blackKING[0];
+  rookQueen[1] = blackKING[1];
+  if (boardObject->array[char2int(rookQueen)] != NULL)
+  {
+    for(int k = 1; k < 8; k++)
+    {
+      rookQueen[0] = rookQueen[0] - k;
+	  position = char2int(rookQueen);
+	  if(checkSpace(1, 'R', position, boardObject) || checkSpace(1, 'Q', position, boardObject)){
+	  	return 1;
+  	  }/*
+      if ( (boardObject->array[char2int(rookQueen)] -> color == 1) && ((boardObject->array[char2int(diagonal)] -> type == 'R') || (boardObject->array[char2int(diagonal)] -> type == 'Q')))
+      {
+        //result = result + 1;
+        return 1;
+        break;
+      }*/
+      if (boardObject->array[char2int(rookQueen)] != 0)
+      {
+        break;
+      }
+    }
+  } 
+
+   //white player, checks if black queen or rook has white king in check from horizontal and vertical
+  //Up
+  rookQueen[0] = whiteKING[0];
+  rookQueen[1] = whiteKING[1];
+  if (boardObject->array[char2int(rookQueen)] != NULL)
+  {
+    for(int k = 1; k < 8; k++)
+    {
+      rookQueen[1] = rookQueen[1] + k;
+	  position = char2int(rookQueen);
+	  if(checkSpace(0, 'R', position, boardObject) || checkSpace(0, 'Q', position, boardObject)){
+	  	return 2;
+  	  }/*
+      if (boardObject->array[char2int(rookQueen)] -> color == 0 && (boardObject->array[char2int(diagonal)] -> type == 'R' || boardObject->array[char2int(diagonal)] -> type == 'Q'))
+      {
+        //result = result + 2;
+        return 2;
+        break;
+      }*/
+      if (boardObject->array[char2int(rookQueen)] != 0)
+      {
+        break;
+      }
+    }
+  }
+  //Down
+  rookQueen[0] = whiteKING[0];
+  rookQueen[1] = whiteKING[1];
+  if (boardObject->array[char2int(rookQueen)] != NULL)
+  {
+    for(int k = 1; k < 8; k++)
+    {
+      rookQueen[1] = rookQueen[1] - k;
+	  position = char2int(rookQueen);
+	  if(checkSpace(0, 'R', position, boardObject) || checkSpace(0, 'Q', position, boardObject)){
+	  	return 2;
+  	  }/*
+      if (boardObject->array[char2int(rookQueen)] -> color == 0 && (boardObject->array[char2int(diagonal)] -> type == 'R' || boardObject->array[char2int(diagonal)] -> type == 'Q'))
+      {
+        //result = result + 2;
+        return 2;
+        break;
+      }*/
+      if (boardObject->array[char2int(rookQueen)] != 0)
+      {
+        break;
+      }
+    } 
+  }
+  //Right
+  rookQueen[0] = whiteKING[0];
+  rookQueen[1] = whiteKING[1];
+  if (boardObject->array[char2int(rookQueen)] != NULL)
+  {
+    for(int k = 1; k < 8; k++)
+    {
+      rookQueen[0] = rookQueen[0] + k;
+	  position = char2int(rookQueen);
+	  if(checkSpace(0, 'R', position, boardObject) || checkSpace(0, 'Q', position, boardObject)){
+	  	return 2;
+  	  }
+	  /*
+      if (boardObject->array[char2int(rookQueen)] -> color == 0 && (boardObject->array[char2int(diagonal)] -> type == 'R' || boardObject->array[char2int(diagonal)] -> type == 'Q'))
+      {
+        //result = result + 2;
+        return 2;
+        break;
+      }*/
+      if (boardObject->array[char2int(rookQueen)] != 0)
+      {
+        break;
+      }
+    } 
+  }
+  //Left
+  rookQueen[0] = whiteKING[0];
+  rookQueen[1] = whiteKING[1];
+  if (boardObject->array[char2int(rookQueen)] != NULL)
+  {
+    for(int k = 1; k < 8; k++)
+    {
+      rookQueen[0] = rookQueen[0] - k;
+	  position = char2int(rookQueen);
+	  if(checkSpace(0, 'R', position, boardObject) || checkSpace(0, 'Q', position, boardObject)){
+	  	return 2;
+  	  }/*
+      if (boardObject->array[char2int(rookQueen)] -> color == 0 && (boardObject->array[char2int(diagonal)] -> type == 'R' || boardObject->array[char2int(diagonal)] -> type == 'Q'))
+      {
+        //result = result + 2;
+        return 2;
+        break;
+      }*/
+      if (boardObject->array[char2int(rookQueen)] != 0)
+      {
+        break;
+      }
+    } 
+  }
+  return 0;
+  }
 //Control Function/ Switch 
 int isLegal(MOVE* moveObject, BOARD* boardObject)
 {
+	//for isLegal move there is special return numbers
+	//for en passant result = 5
   int result;
   switch(moveObject-> piece->type)
   {
@@ -111,12 +981,12 @@ int isLegal(MOVE* moveObject, BOARD* boardObject)
 }
       
 //*****************
-GAME* init_Game(){
+/*GAME* init_Game(){
     BOARD* myB = malloc(sizeof(BOARD));
     initializePieces(0, myB);
     initializePieces(1, myB);
     return myB;
-}
+}*/
 
 void init_Queen(PIECE* myObject, int color){
   
@@ -125,7 +995,7 @@ void init_Queen(PIECE* myObject, int color){
    if(color){ //color is white
      myObject-> position = 59;
    }else{
-     myObject->position = 4;
+     myObject->position = 3;
    } 
 }
 //***
@@ -133,10 +1003,11 @@ void init_Queen(PIECE* myObject, int color){
 void init_King(PIECE* myObject, int color){
   (myObject)->type = 'K';
   (myObject)->color = color;
+  myObject->special = 0; //means the king has not moved
    if(color){ //color is white
      myObject->position = 60;
    }else{
-     myObject->position = 3;
+     myObject->position = 4;
    } 
 }
 void init_Knight(PIECE* myObject, int color, int number){
@@ -230,6 +1101,7 @@ void init_Rook(PIECE* myObject, int color, int number)
   
   myObject-> type = 'R';
   myObject-> color = color;
+  myObject-> special = 0; //setting special to 0 means that rook has not moved yet. 
    if(color){ //color is white
      switch(number){
        case 0:
@@ -307,7 +1179,6 @@ int isLegalKnight(MOVE* moveObject, BOARD* boardObject){
   }
   return is_legal;
 }
-
 int isLegalKing(MOVE* moveObject, BOARD* boardObject){
 
 	// return 0 if destination is not empty
@@ -323,24 +1194,50 @@ int isLegalKing(MOVE* moveObject, BOARD* boardObject){
   
 	//King moves one step in all directions
   if(abs(next_CHAR[0]-current_CHAR[0]) < 2 && abs(next_CHAR[1]-current_CHAR[1]) < 2){
+	  if(moveObject->piece->special == 0){
+		  //change in special variable denotes king has moved now.
+		  moveObject->piece->special = 1; 
+	  }
         return 1;
-  }else{
-        return 0;
-  }
-     
+		//check if king has not moved and are requesting to move 2 spaces horizontally
+  }else if(moveObject->piece->special == 0 && abs(next_CHAR[0]-current_CHAR[0]) == 2 && abs(next_CHAR[1]-current_CHAR[1]) == 0){
+	  	char tempChar[2] = {current_CHAR[0],current_CHAR[1]};
+		PIECE* tempPiece;
+	  	int sign = next_CHAR[0]-current_CHAR[0] < 0?-1:1;
+	  	printf("checking castle %d/n", sign);
+    	do{
+			tempChar[0] = tempChar[0] + sign;
+			tempPiece = boardObject->array[char2int(tempChar)];
+			//check if reach rook
+			if(tempPiece && tempPiece->type == 82 && tempPiece->special == 0){
+				printf("Detected Castle Move");
+				//store rook that will be moved
+				boardObject->lastMove->piece = tempPiece;
+				//give location of rook will be 1 above the last
+				boardObject->lastMove->from = char2int(tempChar);
+				tempChar[0] = current_CHAR[0] + sign;
+				boardObject->lastMove->dest = char2int(tempChar);
+				return 6;
+			}
+		}while(tempPiece == 0);
+		//Testing castle
+		//G1 F3 B1 C3	B8 C6	E7 E6
+		//H7 H6 H7 H6	A2 A3	A2 A3
+		//G2 G3 D2 D3	B7 B6	F8 D6
+		//H6 H5 H6 H5	A3 A4	A3 A4
+		//F1 H3 C1 E3	C8 B7	E8 E7
+		//H5 H4 H5 H4	A4 A5	A4 A5
+		//E1 G1 D1 D2	D8 B8	G8 H6
+		//		H4 H3			A5 A6
+		//		E1 C1			D8 F8
+		return 0;
+  }    
+  return 0;
 }
-
-
-
-
-
-// Check Diagonal
-
-// CheckEmpty
 
 // CheckEmptyOrOpponent
 int isLegalBishop(MOVE*moveObject, BOARD* boardObject){
-  MOVE tempMove = (MOVE) {.from=moveObject->from,.dest = moveObject->dest,.piece = moveObject->piece};
+//   MOVE tempMove = (MOVE) {.from=moveObject->from,.dest = moveObject->dest,.piece = moveObject->piece};
 
 	//checks if your object is there
 	if(!check(moveObject, boardObject)) return 0;
@@ -361,7 +1258,6 @@ int isLegalBishop(MOVE*moveObject, BOARD* boardObject){
   char bishop_CHAR[2];
   bishop_CHAR[0] = current_CHAR[0];
   bishop_CHAR[1] = current_CHAR[1];
-
   for(int i=1; i < step; i++)
   {
     if ( (next_CHAR[0] - current_CHAR[0]) < 0 && (next_CHAR[1] - current_CHAR[1] > 0) )
@@ -395,87 +1291,67 @@ int isLegalBishop(MOVE*moveObject, BOARD* boardObject){
     }
 
   }
-  /*
-  //check diagonal move for bishop; horizontal step = vertical step
-	if( abs(next_CHAR[0]-current_CHAR[0])!= abs(next_CHAR[1]-current_CHAR[1]) ) return 0;
-	
-  //check for no obstacle in the way
-	char x = next_CHAR[0]-current_CHAR[0] > 0 ? 1:-1; //defines horizontal direction
-  char y = next_CHAR[1]-current_CHAR[1] > 0 ? -1:1; //defines vertical direction
-  //obstacle mechanism
-  printf("total moves = %d",abs(next_CHAR[0]-current_CHAR[0]));
-	for (int i=1; i<abs(next_CHAR[0]-current_CHAR[0]); i++){
-    moveDiagonal(&tempMove,x,y); //move diagonally (tempMove.dest));
-    if(check(&tempMove, boardObject)!=1){
-      return 0;
-    }
-  }*/
-	
-	/*// top right move
-		if((next_CHAR[0]>current_CHAR[0])&&(next_CHAR[1]>current_CHAR[1]){
-			int x = char2int(current_CHAR[0]+i);
-			int y = char2int(current_CHAR[1]+i);
-			if ( board [x][y]!=null) return 0;
-		}
-		// bottom right move
-		else if ((next_CHAR[0]>current_CHAR[0])&&(next_CHAR[1]<current_CHAR[1]){
-			int x = char2int(current_CHAR[0]+i);
-			int y = char2int(current_CHAR[1]-i);
-			if ( board [x][y]!=null) return 0;
-		}
-		// top left move
-		else if ((next_CHAR[0]<current_CHAR[0])&&(next_CHAR[1]>current_CHAR[1]){
-			int x = char2int(current_CHAR[0]-i);
-			int y = char2int(current_CHAR[1]+i);
-			if ( board [x][y]!=null) return 0;
-		}
-		// bottom left move
-		else if ((next_CHAR[0]<current_CHAR[0])&&(next_CHAR[1]<current_CHAR[1]){
-			int x = char2int(current_CHAR[0]-i);
-			int y = char2int(current_CHAR[1]-i);
-			if ( board [x][y]!=null) return 0;
-		}	*/
 	
 	return 1;	
     
 }
-//used for temporary variable to check diagonal 
-void moveDiagonal(MOVE* moveObject,int x, int y){//x and y will tell you which direction
-  moveObject->dest = moveObject->dest + 8*y + x;
-}
-
 int isLegalPawn(MOVE* moveObject, BOARD* boardObject){
   
-  //If destination has same color piece
-	if(!check(moveObject, boardObject)) return 0;
-	
+	//special variable documentation
+	//if special == 0, then the pawn has not moved
+	//if special == 1, then the pawn has moved in the regular way
+	//if special == 2, then the pawn has moved two spaces forward
 	char* current_CHAR = int2char(moveObject->from);
 	char* next_CHAR = int2char(moveObject->dest);
-	
+
+	//CHECK FAIL CASES
+	//If destination has same color piece
+	if(!check(moveObject, boardObject)) return 0;
 	//check that dest is different from source
 	if((current_CHAR[0]==next_CHAR[0])&&(current_CHAR[1]==next_CHAR[1])) return 0;
-  
 	// check to see that destination is not out of board
 	if( next_CHAR[0]>72 || next_CHAR[0]<65 || next_CHAR[1]<49 || next_CHAR[1]>56 ) return 0;  
-	
 	// check for the first move of PAWN; special =1 if PAWN has been moved 
-	 
-	if( (abs(next_CHAR[1] - current_CHAR[1]) == 2) && (next_CHAR[0] - current_CHAR[0] == 0) )
-  {		
-    if(moveObject->piece->special==0)
-    {
-        moveObject->piece->special = 1;
-      	return 1;
-    }
-  }
-	//Pawn Capture Another Pawn
-  if( (abs(next_CHAR[0] - current_CHAR[0]) == 1) && (abs(next_CHAR[1] - current_CHAR[1]) == 1) && (check(moveObject, boardObject) == 2 ) )
-  {
-    return 1;
-  }
+	//CHECK FOR MOVING BACKWARDS IF SO NOT LEGAL;
+	if((moveObject->piece->color == 1) == (next_CHAR[1] - current_CHAR[1] < 1)){
+		return 0;
+	}
+
+	//CHECK FOR MOVING FORWARD TWO MOVES on first move
+	if( (abs(next_CHAR[1] - current_CHAR[1]) == 2) && (next_CHAR[0] - current_CHAR[0] == 0) ){
+		if(moveObject->piece->special){
+			return 0;
+		}//CHECK IF FIRST MOVE AND THE SPACE RIGHT IN FRONT IS EMPTY
+		else if(!boardObject->array[moveObject->piece->color?(moveObject->from - 8):(moveObject->from + 8)])
+		{
+			moveObject->piece->special = 2;
+			return 1;
+		}
+  	}
+	//Checking attacking diagonal
+	if( (abs(next_CHAR[0] - current_CHAR[0]) == 1) && (abs(next_CHAR[1] - current_CHAR[1]) == 1)){
+		//check if enemy is there
+		if(check(moveObject, boardObject) == 2){
+			if(moveObject->piece->special == 0){
+				moveObject->piece->special = 1;
+			}
+			return 1;
+		//check for en passant
+		}else if(check(moveObject, boardObject) == 1 && boardObject->lastMove->piece->type == 80 && boardObject->lastMove->piece->special == 2 &&
+		int2char(boardObject->lastMove->dest)[1] == current_CHAR[1]){
+			//return 5 for specifically en passant special move
+			return 5;
+		}
+		//testing for en passant
+		//D2 D4
+		//B8 A6
+		//D4 D5
+		//C7 C5
+		//D5 C6
+	  }
 	
 	// check for diagonal kill, EN PASSANT
-	if( (abs(next_CHAR[0] - current_CHAR[0]) == 1) && (abs(next_CHAR[1] - current_CHAR[1]) == 1) ){
+	/*if( (abs(next_CHAR[0] - current_CHAR[0]) == 1) && (abs(next_CHAR[1] - current_CHAR[1]) == 1) ){
      char enPassantCHAR[2];
      enPassantCHAR[0] = next_CHAR[0];
      enPassantCHAR[1] = next_CHAR[1] - 1;
@@ -485,14 +1361,17 @@ int isLegalPawn(MOVE* moveObject, BOARD* boardObject){
        {
        	if (neighbor(moveObject, boardObject) == 1 || neighbor(moveObject, boardObject) == 2 || neighbor(moveObject, boardObject) == 3)
        	{
+		if(moveObject->piece->special == 0){moveObject->piece->special = 1;}
          return 1;
        	}
        }
      }
-	}
+	}*/
 	// check for regular move
-	if( (abs(next_CHAR[1] - current_CHAR[1]) == 1) && (next_CHAR[0] - current_CHAR[0] == 0) ) return 1;
-	
+	if( (abs(next_CHAR[1] - current_CHAR[1]) == 1) && (next_CHAR[0] - current_CHAR[0] == 0) ){ 
+		if(moveObject->piece->special == 0){moveObject->piece->special = 1;}
+		return 1;
+	}
 	return 0;
 }
 int isLegalRook (MOVE* moveObject, BOARD* boardObject) {
@@ -570,10 +1449,14 @@ int isLegalRook (MOVE* moveObject, BOARD* boardObject) {
       }
     }
 	} 
+	if(moveObject->piece->special == 0){
+		//change in special variable denotes rook has moved now.
+		moveObject->piece->special = 1; 
+	}
 	return 1;
 }
 
-//collin im gonna comment this out for now so i can compile
+//Queen method that uses isLegalBishop and isLegalQueen
 int isLegalQueen (MOVE* moveObject, BOARD* boardObject) {
   if (isLegalBishop(moveObject, boardObject) || isLegalRook(moveObject, boardObject)){
     return 1;
