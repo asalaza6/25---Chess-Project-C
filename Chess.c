@@ -1239,7 +1239,7 @@ int isLegalKing(MOVE* moveObject, BOARD* boardObject){
 
 // CheckEmptyOrOpponent
 int isLegalBishop(MOVE*moveObject, BOARD* boardObject){
-//   MOVE tempMove = (MOVE) {.from=moveObject->from,.dest = moveObject->dest,.piece = moveObject->piece};
+
 
 	//checks if your object is there
 	if(!check(moveObject, boardObject)) return 0;
@@ -1248,46 +1248,49 @@ int isLegalBishop(MOVE*moveObject, BOARD* boardObject){
 	char* next_CHAR = int2char(moveObject->dest);
   
   //check that dest is different from source
-  if((current_CHAR[0]==next_CHAR[0])&&(current_CHAR[1]==next_CHAR[1])) return 0;
-	// check to see that destination is not out of board
-	if( (next_CHAR[0]>72) || (next_CHAR[0]<65) || (next_CHAR[1]<49) || (next_CHAR[1]>56) ) return 0;  
-  //Andy's effort
-  if ( (next_CHAR[0] - current_CHAR[0] == 0) || (next_CHAR[1] - current_CHAR[1] == 0) )
-  {
-    return 0;
-  }
+  if((current_CHAR[0]==next_CHAR[0])&&(current_CHAR[1]==next_CHAR[1])) return 0; //works
+
+  // ensure diagonal destination
+  if( abs(next_CHAR[0]-current_CHAR[0])!=abs(next_CHAR[1]-current_CHAR[1])){ 
+    //printf("Destination is not diagonal \n");
+    return 0;} 
+
   int step = abs(next_CHAR[0] - current_CHAR[0]);
+  //printf("step is %d\n",step);
   char bishop_CHAR[2];
   bishop_CHAR[0] = current_CHAR[0];
   bishop_CHAR[1] = current_CHAR[1];
   for(int i=1; i < step; i++)
   {
+    //printf("i= %d\n",i);
+    //printf("Current position is %s\n",bishop_CHAR);
+    
     if ( (next_CHAR[0] - current_CHAR[0]) < 0 && (next_CHAR[1] - current_CHAR[1] > 0) )
     {
-      bishop_CHAR[0] = bishop_CHAR[0] - i;
-      bishop_CHAR[1] = bishop_CHAR[1] + i;
+      bishop_CHAR[0] = bishop_CHAR[0] - 1;
+      bishop_CHAR[1] = bishop_CHAR[1] + 1;
     }
-    if ( (next_CHAR[0] - current_CHAR[0]) < 0 && (next_CHAR[1] - current_CHAR[1] < 0) )
+    else if ( (next_CHAR[0] - current_CHAR[0]) < 0 && (next_CHAR[1] - current_CHAR[1] < 0) )
     {
-      bishop_CHAR[0] = bishop_CHAR[0] - i;
-      bishop_CHAR[1] = bishop_CHAR[1] - i;
+      bishop_CHAR[0] = bishop_CHAR[0] - 1;
+      bishop_CHAR[1] = bishop_CHAR[1] - 1;
     }
-    if ( (next_CHAR[0] - current_CHAR[0]) > 0 && (next_CHAR[1] - current_CHAR[1] > 0) )
+    else if ( (next_CHAR[0] - current_CHAR[0]) > 0 && (next_CHAR[1] - current_CHAR[1] > 0) )
     {
-      bishop_CHAR[0] = bishop_CHAR[0] + i;
-      bishop_CHAR[1] = bishop_CHAR[1] + i;
+      bishop_CHAR[0] = bishop_CHAR[0] + 1;
+      bishop_CHAR[1] = bishop_CHAR[1] + 1;
     }
-    if ( (next_CHAR[0] - current_CHAR[0]) > 0 && (next_CHAR[1] - current_CHAR[1] < 0) )
+    else if ( (next_CHAR[0] - current_CHAR[0]) > 0 && (next_CHAR[1] - current_CHAR[1] < 0) )
     {
-      bishop_CHAR[0] = bishop_CHAR[0] + i;
-      bishop_CHAR[1] = bishop_CHAR[1] - i;
+      bishop_CHAR[0] = bishop_CHAR[0] + 1;
+      bishop_CHAR[1] = bishop_CHAR[1] - 1;
+      
     }
-    if ( boardObject -> array[char2int(bishop_CHAR)] == 0)
-    {
-      break;
-    }
+    //printf("New position is %s\n",bishop_CHAR);
+    // check that the block is not occupied
     if ( boardObject -> array[char2int(bishop_CHAR)] != 0)
     {
+      //printf("Position is occupied along the way. Break loop \n");
       return 0;
       break;
     }
@@ -1408,99 +1411,42 @@ int isLegalRook (MOVE* moveObject, BOARD* boardObject) {
 	
   if(!check(moveObject, boardObject)) return 0;
   //printf("Line 1383");
-	
 	char* current_CHAR = int2char(moveObject->from);
 	char* next_CHAR = int2char(moveObject->dest);
-	/*
-	char tempChar[2];
-	PIECE* tempPiece;
+	int sign; //whether going up=-1 or down=+1, left=-1 or right=+1
+	int direction; // whether horizontal=0 or vertical=1 
+	char* temp_CHAR = current_CHAR;
 	//vertical
-	int sign = next_CHAR[1]-current_CHAR[1] > 0 ? 1:-1;
+	if(next_CHAR[1]!=current_CHAR[1] && next_CHAR[0]==current_CHAR[0]){
+		sign = next_CHAR[1]-current_CHAR[1] > 0 ? 1:-1;
+		direction = 1;
+	}
+	//horizontal
+	else if(next_CHAR[0]!=current_CHAR[0] && next_CHAR[1]==current_CHAR[1]){
+		sign = next_CHAR[0]-current_CHAR[0] > 0 ? 1:-1;
+		direction = 0;
+	}
+	//move is not a straight line
+	else{
+		return 0; 
+	}
 	do{
-			tempPiece = boardObject->array[char2int(tempChar)];
-			//check if reach rook
-			if(tempPiece && tempPiece->type == 82 && tempPiece->special == 0){
-				printf("Detected Castle Move");
-				//store rook that will be moved
-				boardObject->lastMove->piece = tempPiece;
-				//give location of rook will be 1 above the last
-				boardObject->lastMove->from = char2int(tempChar);
-				tempChar[0] = current_CHAR[0] + sign;
-				boardObject->lastMove->dest = char2int(tempChar);
-				return 6;
+			//move checking piece to next level
+			if(direction){//vertical
+				temp_CHAR[1] += sign;
+			}else{//horizontal
+				temp_CHAR[0] += sign;
 			}
-			tempChar[1] = tempChar[1] + sign;
-		}while(tempPiece == 0);
-	*/
-	// check that dest is different from source 
-	if((current_CHAR[0]==next_CHAR[0])&&(current_CHAR[1]==next_CHAR[1])) return 0;
-
-	// vertical move
-	if(current_CHAR[0]==next_CHAR[0]){
-	int step1 = abs(next_CHAR[1]-current_CHAR[1]);
-    char rookCHAR[2];
-    rookCHAR[0] = current_CHAR[0];
-    rookCHAR[1] = current_CHAR[1];
-    
-	printf("rookCHAR is %s\n", rookCHAR);
-		for (int i=1; i<step1; i++ ){
-			if ( (next_CHAR[1] - current_CHAR[1]) > 0){ //checks if moving down
-				rookCHAR[1] = rookCHAR[1] + i;
-				printf("rookCHAR is %s\n", rookCHAR);
+			//check if reached destination;
+			if(temp_CHAR[0] == next_CHAR[0] && temp_CHAR[1]==next_CHAR[1]){
+				//already checked if spaces in between are empty and that the destination is filled by a enemy or empty
+				return 1;
 			}
-			if ( (next_CHAR[1] - current_CHAR[1]) < 0){//checks if moving up
-				rookCHAR[1] = rookCHAR[1] - i;
-				printf("rookCHAR is %s\n", rookCHAR);
-			}
-			if( boardObject -> array[char2int(rookCHAR)] == 0){//checks if no object exists
-				break;
-			}
-			if ( boardObject -> array[char2int(rookCHAR)] != 0){
-				return 0;
-				break;
-			}
-       
-		}
-	}
-  // horizontal move
-	if(current_CHAR[1]==next_CHAR[1])
-  {
-    int step2 = abs(next_CHAR[0] - current_CHAR[0]);
-    char rookCHAR2[2];
-    rookCHAR2[0] = current_CHAR[0];
-    rookCHAR2[1] = current_CHAR[1];
-    for (int j=1; j<step2; j++)
-    {
-      if ( (next_CHAR[0] - current_CHAR[0]) > 0)
-      {
-        rookCHAR2[0] = rookCHAR2[0] + j;
-      }
-      if ( (next_CHAR[0] - current_CHAR[0]) < 0)
-      {
-        rookCHAR2[0] = rookCHAR2[0] - j;
-      }
-      if( boardObject -> array[char2int(rookCHAR2)] == 0)
-      {
-        
-        break;
-      }
-      else
-      {
-        return 0;
-        break;
-      }
-    }
-	} 
-	
-	if(current_CHAR[0] != next_CHAR[0] && current_CHAR[1] != next_CHAR[1]){
-		return 0;
-	}
-	if(moveObject->piece->special == 0){
-		//change in special variable denotes rook has moved now.
-		moveObject->piece->special = 1; 
-	}
-	return 1;
+		//only continue searching if current square is not occupied and within board
+		}while(!boardObject->array[char2int(temp_CHAR)] && char2int(temp_CHAR)>-1 && char2int(temp_CHAR)<64);
+	return 0;
 }
+
 
 //Queen method that uses isLegalBishop and isLegalQueen
 int isLegalQueen (MOVE* moveObject, BOARD* boardObject) {

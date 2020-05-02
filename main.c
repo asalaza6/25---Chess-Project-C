@@ -29,13 +29,13 @@ int main(){
 	printf("Player 1! It's your turn!");
 	playMove(playerPieces,gameBoard);
 	printBoard(gameBoard);
-    head = possibleMoves(gameBoard,playerPieces->Knight1->position) ;
+    head = possibleMoves(gameBoard,playerPieces->Queen->position) ;
     print_list(head);
 	//player 2's turn
 	printf("Player 2! It's your turn!");
 	playMove(computerPieces,gameBoard);
     printf("Gets Here\n");
-    head = possibleMoves(gameBoard, playerPieces->Knight1->position) ;
+    head = possibleMoves(gameBoard, playerPieces->Queen->position) ;
     print_list(head);
     //AI STUFF
   }
